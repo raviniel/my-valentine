@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You 💖</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ===== 1. GLOBAL SETTINGS ===== */
+        :root {
+            --primary: #ff6b81;
+            --secondary: #ff4757;
+            --bg-color: #ffe3e3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden; /* Prevents scrollbars */
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #fad0c4 0%, #ff9a9e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: default; /* We will add the custom trail via JS */
+        }
+
+        /* ===== 2. BACKGROUND BUBBLE HEARTS (From my code) ===== */
+        .bg-heart {
+            position: absolute;
+            bottom: -10vh;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 2rem;
+            animation: floatUp linear forwards;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes floatUp {
+            to { transform: translateY(-120vh) rotate(360deg); }
+        }
+
+        /* ===== 3. CURSOR TRAIL HEARTS (From your code) ===== */
+        .cursor-heart {
+            position: absolute;
+            color: #ff4757;
+            font-size: 20px;
+            pointer-events: none; /* Let clicks pass through */
+            animation: fadeUp 1s forwards;
+            z-index: 9999;
+        }
+
+        @keyframes fadeUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        /* ===== 4. CONTAINER & GLASS EFFECT ===== */
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 3px solid #fff;
+            display: none; /* Hidden initially until envelope opens */
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* ===== 5. ENVELOPE STYLES (From your code, polished) ===== */
+        .envelope-wrapper {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .envelope-wrapper:hover {
+            transform: scale(1.05);
+        }
+
+        .envelope {
+            width: 250px;
+            height: 160px;
+            background: #ff6b81;
+            position: relative;
+            margin: auto;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .envelope::before { /* Top flap */
+            content: '';
+            position: absolute;
+            width: 0; height: 0;
+            border-left: 125px solid transparent;
+            border-right: 125px solid transparent;
+            border-top: 100px solid #ff4757;
+            top: 0; left: 0;
+            transform-origin: top;
+            transition: transform 0.8s ease, z-index 0.8s;
+            z-index: 5;
+        }
+
+        .envelope::after { /* Bottom pockets */
+            content: '';
+            position: absolute;
+            width: 0; height: 0;
+            border-left: 125px solid transparent;
+            border-right: 125px solid transparent;
+            border-bottom: 100px solid #ff7b91;
+            bottom: 0; left: 0;
+            border-radius: 0 0 10px 10px;
+            z-index: 4;
+        }
+
+        .heart-seal {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: #fff;
+            z-index: 10;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: opacity 0.5s;
+        }
+
+        .envelope.open::before {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .envelope.open .heart-seal {
+            opacity: 0;
+        }
+
+        .tap-hint {
+            margin-top: 20px;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            animation: bounce 2s infinite;
+        }
+
+        /* ===== 6. TEXT & BUTTONS ===== */
+        h1 {
+            font-family: 'Pacifico', cursive;
+            color: var(--secondary);
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .highlight {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            position: relative;
+            height: 60px; /* Space for button movement */
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            font-family: 'Quicksand', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .yes-btn {
+            background: var(--primary);
+            color: white;
+        }
+        .yes-btn:hover {
+            transform: scale(1.1);
+            background: var(--secondary);
+        }
+
+        .no-btn {
+            background: white;
+            color: var(--secondary);
+            position: relative; /* Allows it to be moved via JS */
+        }
+
+        /* ===== 7. CELEBRATION GIF ===== */
+        .gif-container img {
+            width: 100%;
+            max-width: 250px;
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <source src="C:\Users\Kurt\Documents\DC server\Gabrielle\f14\LaufeyValentine.mp3" type="audio/mpeg">
+        </audio>
+
+    <div id="background-container"></div>
+
+    <div class="container">
+        
+        <div class="envelope-wrapper" id="envelopeWrapper" onclick="openEnvelope()">
+            <div class="envelope" id="envelope">
+                <div class="heart-seal">💌</div>
+            </div>
+            <div class="tap-hint">Tap to open</div>
+        </div>
+
+        <div class="glass-card" id="questionCard">
+            <h1>Will you be my Valentine? 💖</h1>
+            <p>Hey <span class="highlight">Veeautiful</span>,<br>You make my world brighter. I want to celebrate this day with you heh!</p>
+            
+            <div class="btn-group">
+                <button class="yes-btn" onclick="sayYes()">YES 💕</button>
+                <button class="no-btn" id="noBtn" onmouseover="moveButton()" onclick="moveButton()">NO 💔</button>
+            </div>
+        </div>
+
+        <div class="glass-card" id="successCard">
+            <h1>Yay! I Love You! 💘</h1>
+            <p>I knew you would say yes! mwehehe amwamwamwa😘</p>
+            <div class="gif-container">
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbHFqMTA4Z2Z6MHRrN2dxMXVhandtNDU3bDc4am5hNDZhNnhqOTA2YSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/W1hd3uXRIbddu/giphy.gif" alt="Cute Love GIF">
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* ===== LOGIC ===== */
+
+        // 1. OPEN ENVELOPE
+        function openEnvelope() {
+            const wrapper = document.getElementById('envelopeWrapper');
+            const envelope = document.getElementById('envelope');
+            const card = document.getElementById('questionCard');
+            const audio = document.getElementById('bgMusic');
+
+            // Play music on first interaction
+            audio.volume = 0.5;
+            audio.play().catch(e => console.log("Audio play failed (user didn't interact yet):", e));
+
+            envelope.classList.add('open');
+            
+            // Wait for animation, then swap views
+            setTimeout(() => {
+                wrapper.style.display = 'none';
+                card.style.display = 'block';
+            }, 800);
+        }
+
+        // 2. MOVE "NO" BUTTON (The Game)
+        function moveButton() {
+            const btn = document.getElementById('noBtn');
+            const card = document.getElementById('questionCard');
+            
+            // Get boundaries
+            const cardRect = card.getBoundingClientRect();
+            const btnRect = btn.getBoundingClientRect();
+
+            // Calculate max X and Y within the window (safe area)
+            const maxX = window.innerWidth - btnRect.width - 20;
+            const maxY = window.innerHeight - btnRect.height - 20;
+
+            const randomX = Math.random() * maxX;
+            const randomY = Math.random() * maxY;
+
+            // Apply new fixed position
+            btn.style.position = 'fixed';
+            btn.style.left = randomX + 'px';
+            btn.style.top = randomY + 'px';
+            btn.style.zIndex = '100';
+        }
+
+        // 3. SAY YES (Celebration)
+        function sayYes() {
+            document.getElementById('questionCard').style.display = 'none';
+            document.getElementById('successCard').style.display = 'block';
+            
+            // Trigger Confetti
+            createConfetti();
+        }
+
+        // 4. CURSOR TRAIL HEARTS
+        document.addEventListener('mousemove', function(e) {
+            const heart = document.createElement('div');
+            heart.classList.add('cursor-heart');
+            heart.innerHTML = '💖';
+            heart.style.left = e.pageX + 'px';
+            heart.style.top = e.pageY + 'px';
+            document.body.appendChild(heart);
+
+            // Remove heart after animation
+            setTimeout(() => {
+                heart.remove();
+            }, 1000);
+        });
+
+        // 5. BACKGROUND BUBBLE HEARTS
+        function createBgHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('bg-heart');
+            heart.innerHTML = '❤';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = Math.random() * 3 + 3 + 's';
+            heart.style.opacity = Math.random() * 0.5 + 0.1;
+            heart.style.fontSize = Math.random() * 20 + 20 + 'px';
+            
+            document.getElementById('background-container').appendChild(heart);
+
+            setTimeout(() => {
+                heart.remove();
+            }, 6000);
+        }
+
+        setInterval(createBgHeart, 400);
+
+        // 6. CONFETTI EFFECT
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.innerHTML = ['❤️', '🤍', '💖', '🌸'][Math.floor(Math.random() * 4)];
+                confetti.style.position = 'fixed';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10vh';
+                confetti.style.fontSize = Math.random() * 20 + 10 + 'px';
+                confetti.style.animation = `fall ${Math.random() * 2 + 2}s linear forwards`;
+                
+                document.body.appendChild(confetti);
+            }
+            
+            // Add Styles for falling
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes fall {
+                    to { transform: translateY(110vh) rotate(720deg); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    </script>
+</body>
+</html>
